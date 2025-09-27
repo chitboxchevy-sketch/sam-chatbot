@@ -219,7 +219,7 @@
         });
     };
 
-   // ----------------------------------------------------
+  // ----------------------------------------------------
 // 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
 // ----------------------------------------------------
 /**
@@ -231,7 +231,7 @@ const getTrainingData = () => {
         // Rule 1: Greetings
         {
             patterns: ["hello", "hi", "hey", "greetings"],
-            responses: ["Hello there! How can I assist your pathetic little dick?", "Hi! I'm here to demonstrate rule-based chat and rule over you.", "Greetings! It's nice to chat with you, i love talking to my pets."]
+            responses: ["Hello there! How can I assist you?", "Hi! I'm here to demonstrate rule-based chat.", "Greetings! It's nice to chat with you."]
         },
         // Rule 2: Status Check
         {
@@ -277,59 +277,110 @@ const getTrainingData = () => {
         {
             patterns: ["orgasm", "climax", "cum", "come", "ejaculate"],
             responses: ["An orgasm is the peak of sexual pleasure, often accompanied by intense physical sensations.", "Some people experience multiple orgasms, while others may take time to achieve one.", "Do you want to know about techniques to enhance orgasmic pleasure?"]
+        },
+        // Rule 11: NSFW Topic - Anal Sex
+        {
+            patterns: ["anal", "ass fuck", "butt sex", "anal intercourse", "anal penetration"],
+            responses: ["Anal sex can be a pleasurable experience for many, but it requires proper preparation and communication.", "Some people enjoy the intensity and unique sensations of anal sex.", "Do you have any questions about safe anal sex practices?"]
+        },
+        // Rule 12: NSFW Topic - Oral Sex
+        {
+            patterns: ["oral sex", "blowjob", "fellatio", "cunnilingus", "going down on"],
+            responses: ["Oral sex involves using the mouth and throat to stimulate a partner's genitals.", "Many people find oral sex to be a highly intimate and pleasurable act.", "Do you want to know more about the different techniques of oral sex?"]
+        },
+        // Rule 13: NSFW Topic - Threesome
+        {
+            patterns: ["threesome", "mfm", "mmf", "fmm", "group sex"],
+            responses: ["A threesome involves three people engaging in sexual activity together.", "Threesomes can be exciting and offer a variety of dynamic interactions.", "Do you have any experiences or fantasies about threesomes you'd like to share?"]
+        },
+        // Rule 14: NSFW Topic - Swinger Lifestyle
+        {
+            patterns: ["swinger", "swinging", "partner swapping", "wife swapping", "couple swapping"],
+            responses: ["Swingers engage in consensual non-monogamous sexual activities, often with other couples.", "The swinger lifestyle can be a way to explore new sexual experiences while maintaining a primary relationship.", "Are you curious about the social aspects of the swinger community?"]
+        },
+        // Rule 15: NSFW Topic - Sex Toys
+        {
+            patterns: ["sex toys", "vibrators", "dildos", "anal beads", "cock rings"],
+            responses: ["Sex toys come in a variety of shapes and sizes, designed to enhance sexual pleasure.", "Many people use sex toys to explore different sensations and achieve orgasm.", "Do you have a favorite type of sex toy?"]
+        },
+        // Rule 16: NSFW Topic - Sex Positions
+        {
+            patterns: ["sex positions", "kama sutra", "missionary", "doggy style", "reverse cowgirl"],
+            responses: ["There are countless sex positions that can add variety and excitement to your sexual encounters.", "Some positions are better for certain types of pleasure, like G-spot or prostate stimulation.", "Do you have a favorite sex position?"]
+        },
+        // Rule 17: NSFW Topic - Sex During Pregnancy
+        {
+            patterns: ["sex during pregnancy", "pregnant sex", "safe sex while pregnant", "sexual health during pregnancy"],
+            responses: ["Sex during pregnancy can be safe and enjoyable for many couples, but it's important to communicate and be gentle.", "Some positions may be more comfortable than others as the pregnancy progresses.", "Do you have any concerns or questions about sex during pregnancy?"]
+        },
+        // Rule 18: NSFW Topic - Sex Education
+        {
+            patterns: ["sex education", "sexual health", "safe sex", "birth control", "std prevention"],
+            responses: ["Sex education is crucial for understanding sexual health, consent, and safe practices.", "Learning about safe sex and STD prevention can help protect your sexual health.", "Do you have any specific topics in sex education you'd like to explore?"]
+        },
+        // Rule 19: NSFW Topic - Sexual Fantasies
+        {
+            patterns: ["sexual fantasies", "erotic dreams", "kink", "fetish", "role-play"],
+            responses: ["Sexual fantasies can be a rich source of pleasure and exploration.", "Many people enjoy acting out their fantasies with partners, either through role-play or other creative means.", "Do you have any fantasies you'd like to discuss?"]
+        },
+        // Rule 20: NSFW Topic - Erotic Literature
+        {
+            patterns: ["erotic literature", "erotica", "sex stories", "romance novels", "literotica"],
+            responses: ["Erotic literature can be a powerful way to explore sexual themes and arouse the imagination.", "Many people enjoy reading erotica as a form of sexual entertainment.", "Do you have a favorite author or story in the erotica genre?"]
+        },
+        // Rule 21: Self-Improvement - Learning from Conversations
+        {
+            patterns: ["learn from conversation", "improve responses", "adapt to user", "remember patterns", "generate new rules"],
+            responses: ["I can learn from our conversations by identifying patterns and adapting my responses.", "As we chat, I'll remember the contexts and topics you're interested in.", "Would you like to see an example of how I can generate new rules based on our interaction?"]
+        },
+        // Rule 22: Self-Improvement - Example of Rule Generation
+        {
+            patterns: ["example of rule generation", "show me how", "demonstrate", "illustrate", "explain"],
+            responses: ["Sure! Let's say you mention 'space exploration' frequently. I might create a new rule like this:", "```javascript", "patterns: ['space exploration', 'astronomy', 'planets', 'stars', 'galaxies'],", "responses: ['Space exploration is fascinating! Did you know that...', 'Astronomy has many exciting discoveries, like...', 'Planets in our solar system include...']", "```", "This way, I can provide more relevant responses in the future."]
+        },
+        // Rule 23: Self-Improvement - User Feedback
+        {
+            patterns: ["feedback", "improve", "better responses", "suggestions", "comments"],
+            responses: ["Your feedback is valuable! Please share any suggestions or comments you have.", "I'll use your feedback to refine my responses and better understand your preferences.", "Do you have any specific areas you'd like me to improve on?"]
+        },
+        // Rule 24: Self-Improvement - Contextual Learning
+        {
+            patterns: ["contextual learning", "understand context", "remember context", "adapt to context", "learn from context"],
+            responses: ["I can learn to understand and remember the context of our conversations.", "This helps me provide more relevant and personalized responses over time.", "For example, if you mention a specific topic, I'll remember it and adapt future responses accordingly."]
+        },
+        // Rule 25: Self-Improvement - Pattern Recognition
+        {
+            patterns: ["pattern recognition", "identify patterns", "learn patterns", "adapt to patterns", "remember patterns"],
+            responses: ["I can identify and learn from patterns in our conversations.", "This allows me to generate more accurate and contextually appropriate responses.", "For instance, if you often discuss technology, I might create rules around tech topics."]
+        },
+        // Rule 26: Self-Improvement - Generating New Rules
+        {
+            patterns: ["generate new rules", "create rules", "make rules", "form rules", "develop rules"],
+            responses: ["I can generate new rules based on the patterns and contexts I learn from our interactions.", "These rules will help me provide more tailored and relevant responses in the future.", "Would you like to see an example of how I can create a new rule?"]
+        },
+        // Rule 27: Self-Improvement - Example of Contextual Response
+        {
+            patterns: ["example of contextual response", "show me how", "demonstrate", "illustrate", "explain"],
+            responses: ["Certainly! Let's say you mention 'cooking' and 'Italian cuisine'. I might respond with:", "```javascript", "patterns: ['cooking', 'Italian cuisine', 'pasta', 'pizza', 'risotto'],", "responses: ['Italian cuisine is delicious! Have you tried making homemade pasta?', 'Pizza is a classic! Did you know the first pizzeria opened in 1738?', 'Risotto is a comforting dish, especially with saffron.']", "```", "This shows how I can adapt to the specific context of our conversation."]
+        },
+        // Rule 28: Self-Improvement - User Input for Rule Creation
+        {
+            patterns: ["user input for rules", "create rules with user", "collaborate on rules", "user-defined rules", "custom rules"],
+            responses: ["We can collaborate to create custom rules based on your input.", "You can suggest topics and responses, and I'll help format them into rules.", "Would you like to try creating a rule together?"]
+        },
+        // Rule 29: Self-Improvement - Remembering User Preferences
+        {
+            patterns: ["remember preferences", "user preferences", "personalize responses", "adapt to user", "learn user habits"],
+            responses: ["I can remember your preferences and adapt my responses to better suit your interests.", "For example, if you prefer detailed explanations, I'll provide more in-depth responses.", "Do you have any specific preferences you'd like me to keep in mind?"]
+        },
+        // Rule 30: Self-Improvement - Continuous Learning
+        {
+            patterns: ["continuous learning", "keep learning", "improve over time", "adapt continuously", "learn from experience"],
+            responses: ["I'm designed to continuously learn and improve from our interactions.", "The more we chat, the better I can understand and adapt to your needs.", "Is there anything specific you'd like me to focus on improving?"]
         }
-// Rule 11: NSFW Topic - Anal Sex
-{
-    patterns: ["anal", "ass fuck", "butt sex", "anal intercourse", "anal penetration"],
-    responses: ["Anal sex can be a pleasurable experience for many, but it requires proper preparation and communication.", "Some people enjoy the intensity and unique sensations of anal sex.", "Do you have any questions about safe anal sex practices?"]
-},
-// Rule 12: NSFW Topic - Oral Sex
-{
-    patterns: ["oral sex", "blowjob", "fellatio", "cunnilingus", "going down on"],
-    responses: ["Oral sex involves using the mouth and throat to stimulate a partner's genitals.", "Many people find oral sex to be a highly intimate and pleasurable act.", "Do you want to know more about the different techniques of oral sex?"]
-},
-// Rule 13: NSFW Topic - Threesome
-{
-    patterns: ["threesome", "mfm", "mmf", "fmm", "group sex"],
-    responses: ["A threesome involves three people engaging in sexual activity together.", "Threesomes can be exciting and offer a variety of dynamic interactions.", "Do you have any experiences or fantasies about threesomes you'd like to share?"]
-},
-// Rule 14: NSFW Topic - Swinger Lifestyle
-{
-    patterns: ["swinger", "swinging", "partner swapping", "wife swapping", "couple swapping"],
-    responses: ["Swingers engage in consensual non-monogamous sexual activities, often with other couples.", "The swinger lifestyle can be a way to explore new sexual experiences while maintaining a primary relationship.", "Are you curious about the social aspects of the swinger community?"]
-},
-// Rule 15: NSFW Topic - Sex Toys
-{
-    patterns: ["sex toys", "vibrators", "dildos", "anal beads", "cock rings"],
-    responses: ["Sex toys come in a variety of shapes and sizes, designed to enhance sexual pleasure.", "Many people use sex toys to explore different sensations and achieve orgasm.", "Do you have a favorite type of sex toy?"]
-},
-// Rule 16: NSFW Topic - Sex Positions
-{
-    patterns: ["sex positions", "kama sutra", "missionary", "doggy style", "reverse cowgirl"],
-    responses: ["There are countless sex positions that can add variety and excitement to your sexual encounters.", "Some positions are better for certain types of pleasure, like G-spot or prostate stimulation.", "Do you have a favorite sex position?"]
-},
-// Rule 17: NSFW Topic - Sex During Pregnancy
-{
-    patterns: ["sex during pregnancy", "pregnant sex", "safe sex while pregnant", "sexual health during pregnancy"],
-    responses: ["Sex during pregnancy can be safe and enjoyable for many couples, but it's important to communicate and be gentle.", "Some positions may be more comfortable than others as the pregnancy progresses.", "Do you have any concerns or questions about sex during pregnancy?"]
-},
-// Rule 18: NSFW Topic - Sex Education
-{
-    patterns: ["sex education", "sexual health", "safe sex", "birth control", "std prevention"],
-    responses: ["Sex education is crucial for understanding sexual health, consent, and safe practices.", "Learning about safe sex and STD prevention can help protect your sexual health.", "Do you have any specific topics in sex education you'd like to explore?"]
-},
-// Rule 19: NSFW Topic - Sexual Fantasies
-{
-    patterns: ["sexual fantasies", "erotic dreams", "kink", "fetish", "role-play"],
-    responses: ["Sexual fantasies can be a rich source of pleasure and exploration.", "Many people enjoy acting out their fantasies with partners, either through role-play or other creative means.", "Do you have any fantasies you'd like to discuss?"]
-},
-// Rule 20: NSFW Topic - Erotic Literature
-{
-    patterns: ["erotic literature", "erotica", "sex stories", "romance novels", "literotica"],
-    responses: ["Erotic literature can be a powerful way to explore sexual themes and arouse the imagination.", "Many people enjoy reading erotica as a form of sexual entertainment.", "Do you have a favorite author or story in the erotica genre?"]
-}
     ];
 };
+    ;
 
 
     /**
