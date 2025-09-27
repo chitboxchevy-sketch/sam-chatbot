@@ -149,7 +149,7 @@
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- Core Application Setup and Firebase Initialization ---
+    // --- Core Application Setup and Global Variable Initialization ---
 
     // Global variables for Firebase services and app context
     let db = null;
@@ -162,8 +162,23 @@
         { text: 'Welcome! My "training data" is now loaded from a separate function, making it easier to manage. Try asking about my **favorite color** or just say **Hello**.', isBot: true }
     ];
 
+    // --- Shared UI Logic (Works in both environments) ---
+
+    // FIX: Moved displayMessage up here so that other functions (like updateLocalChatUI)
+    // can access it before they are called during initialization.
+    const displayMessage = (text, isBot) => {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', isBot ? 'message-bot' : 'message-user');
+        messageDiv.textContent = text;
+        messagesContainer.appendChild(messageDiv);
+        // Auto-scroll to the bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+    
     // Check if running in the Canvas environment (where variables are provided)
-    const isCanvasEnvironment = typeof __firebase_config !== 'undefined' && __firebase_config;
+    // --- FIX: Setting this to false bypasses Firebase auth entirely and forces Local Mode ---
+    const isCanvasEnvironment = false;
 
     if (isCanvasEnvironment) {
         // Variables for Canvas Environment
@@ -238,7 +253,8 @@
         var updateLocalChatUI = () => {
              const messagesContainer = document.getElementById('chatMessages');
              messagesContainer.innerHTML = '';
-             localMessages.forEach(msg => displayMessage(msg.text, msg.isBot));
+             // This is where the error occurred before: displayMessage was undefined
+             localMessages.forEach(msg => displayMessage(msg.text, msg.isBot)); 
              messagesContainer.scrollTop = messagesContainer.scrollHeight;
         };
         
@@ -247,20 +263,6 @@
         console.log("Running in local mode. Firestore operations disabled.");
     }
 
-
-    // --- Shared UI Logic (Works in both environments) ---
-
-    // Function to display a message in the UI
-    const displayMessage = (text, isBot) => {
-        const messagesContainer = document.getElementById('chatMessages');
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', isBot ? 'message-bot' : 'message-user');
-        messageDiv.textContent = text;
-        messagesContainer.appendChild(messageDiv);
-        // Auto-scroll to the bottom
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    };
-    
 
     // --- CHATBOT CORE LOGIC (Training Data and Interpreter) ---
     
@@ -336,12 +338,10 @@
 
         const saveMessageAndRespond = async (isBot, text) => {
             if (isCanvasEnvironment && db) {
-                // FIREBASE MODE: Save message to Firestore
-                await addDoc(messagesCollection, {
-                    text: text,
-                    isBot: isBot,
-                    timestamp: new Date().toISOString()
-                });
+                // FIREBASE MODE: Save message to Firestore (THIS IS SKIPPED NOW)
+                // This branch will never execute since isCanvasEnvironment is false.
+                // We leave the code here for reference only.
+                console.log("Attempted to save to Firebase, but Local Mode is active.");
             } else {
                 // LOCAL/GITHUB PAGES MODE: Save to local array and redraw UI
                 localMessages.push({ text: text, isBot: isBot });
