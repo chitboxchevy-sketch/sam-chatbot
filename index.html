@@ -127,14 +127,11 @@
 
 <div class="chat-container">
     <div class="user-id-display">
-        <p>User ID: <span id="userIdDisplay">Loading...</span></p>
-        <p id="envWarning" class="local-warning"></p>
+        <p>User ID: <span id="userIdDisplay">Local-User</span></p>
+        <p id="envWarning" class="local-warning">Running in Local Mode (History is not saved).</p>
     </div>
     <div id="chatMessages" class="chat-messages">
         <!-- Messages will be injected here by JavaScript -->
-        <div class="message message-bot">
-            Welcome! My "training data" is now loaded from a separate function, making it easier to manage. Try asking about my **favorite color** or just say **Hello**.
-        </div>
     </div>
     <form id="chatForm" class="chat-input" onsubmit="handleSendMessage(event)">
         <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">
@@ -142,30 +139,24 @@
     </form>
 </div>
 
-<!-- Firebase SDKs -->
+<!-- All logic is now purely self-contained JavaScript -->
 <script type="module">
-    // IMPORTANT: Firebase imports must be a single block at the top of the script
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // --- Core Application Setup and Global Variable Initialization ---
-
-    // Global variables for Firebase services and app context
-    let db = null;
-    let auth = null;
-    let userId = 'Local-User';
-    let appId = 'default-app-id';
+    // --- Global State ---
     
-    // Fallback for local/GitHub Pages environment
+    // In-memory chat history (will be reset on page refresh)
     let localMessages = [
         { text: 'Welcome! My "training data" is now loaded from a separate function, making it easier to manage. Try asking about my **favorite color** or just say **Hello**.', isBot: true }
     ];
+    
+    // Create a simple, local user ID
+    const userId = 'Local-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    document.getElementById('userIdDisplay').textContent = userId;
 
-    // --- Shared UI Logic (Works in both environments) ---
+    // --- Core UI Functions ---
 
-    // FIX: Moved displayMessage up here so that other functions (like updateLocalChatUI)
-    // can access it before they are called during initialization.
+    /**
+     * Renders a single message element to the chat container.
+     */
     const displayMessage = (text, isBot) => {
         const messagesContainer = document.getElementById('chatMessages');
         const messageDiv = document.createElement('div');
@@ -176,97 +167,25 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     };
     
-    // Check if running in the Canvas environment (where variables are provided)
-    // --- FIX: Setting this to false bypasses Firebase auth entirely and forces Local Mode ---
-    const isCanvasEnvironment = false;
-
-    if (isCanvasEnvironment) {
-        // Variables for Canvas Environment
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        // Initialize Firebase
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            console.log("Firebase initialized successfully (Canvas Mode).");
-        } catch (error) {
-            console.error("Error initializing Firebase:", error);
-            // If initialization fails even with config, treat it as a local environment fallback
-            document.getElementById('envWarning').textContent = "FIREBASE FAILED. Using Local Storage Mode.";
-        }
-        
-        // Data is stored at /artifacts/{appId}/public/data/messages (for shared chat history)
-        var messagesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
-
-        // Authenticate the user (Firebase Mode)
-        const authenticateUser = async () => {
-            try {
-                if (auth) {
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    userId = auth.currentUser.uid;
-                    document.getElementById('userIdDisplay').textContent = userId;
-                    console.log("User authenticated with ID:", userId);
-                    setupRealtimeListener();
-                }
-            } catch (error) {
-                console.error("Firebase Authentication failed:", error);
-                document.getElementById('userIdDisplay').textContent = "Auth failed";
-            }
-        };
-        
-        // Sets up a real-time listener (Firebase Mode)
-        var setupRealtimeListener = () => {
-            const q = query(messagesCollection, orderBy('timestamp'));
-
-            onSnapshot(q, (snapshot) => {
-                const messagesContainer = document.getElementById('chatMessages');
-                messagesContainer.innerHTML = ''; // Clear existing messages
-
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    displayMessage(data.text, data.isBot);
-                });
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, (error) => {
-                console.error("Error listening to messages:", error);
-            });
-        };
-        
-        authenticateUser(); // Start Firebase auth process
-        
-    } else {
-        // Fallback for Local/GitHub Pages Mode
-        document.getElementById('envWarning').textContent = "Running in Local Mode (No Firebase/History will be saved).";
-        
-        // Use a simple UUID for a fake user ID
-        userId = 'Local-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        document.getElementById('userIdDisplay').textContent = userId;
-        
-        // Function to update UI from localMessages array
-        var updateLocalChatUI = () => {
-             const messagesContainer = document.getElementById('chatMessages');
-             messagesContainer.innerHTML = '';
-             // This is where the error occurred before: displayMessage was undefined
-             localMessages.forEach(msg => displayMessage(msg.text, msg.isBot)); 
-             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        };
-        
-        // Initial load of local message history
-        updateLocalChatUI();
-        console.log("Running in local mode. Firestore operations disabled.");
-    }
+    /**
+     * Clears the UI and redraws all messages from the localMessages array.
+     */
+    const updateLocalChatUI = () => {
+         const messagesContainer = document.getElementById('chatMessages');
+         messagesContainer.innerHTML = '';
+         localMessages.forEach(msg => displayMessage(msg.text, msg.isBot));
+         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+    
+    // Initial load of local message history
+    updateLocalChatUI();
 
 
     // --- CHATBOT CORE LOGIC (Training Data and Interpreter) ---
     
-    // 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
+    /**
+     * 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
+     */
     const getTrainingData = () => {
         return [
             // Rule 1: Greetings
@@ -323,9 +242,11 @@
         return "I apologize, but I don't have a rule for that specific topic yet. My 'training' needs to be updated with that knowledge!";
     };
 
-    // --- Main Send Message Handler (Environment Switch) ---
+    // --- Main Send Message Handler ---
 
-    // Function to send a message (handles both Firebase and Local Mode)
+    /**
+     * Function to send a message (Local Mode Only).
+     */
     window.handleSendMessage = async (event) => {
         event.preventDefault();
         const inputField = document.getElementById('chatInput');
@@ -336,27 +257,20 @@
         inputField.value = '';
         const botResponseText = generateSimpleResponse(userMessage);
 
-        const saveMessageAndRespond = async (isBot, text) => {
-            if (isCanvasEnvironment && db) {
-                // FIREBASE MODE: Save message to Firestore (THIS IS SKIPPED NOW)
-                // This branch will never execute since isCanvasEnvironment is false.
-                // We leave the code here for reference only.
-                console.log("Attempted to save to Firebase, but Local Mode is active.");
-            } else {
-                // LOCAL/GITHUB PAGES MODE: Save to local array and redraw UI
-                localMessages.push({ text: text, isBot: isBot });
-                updateLocalChatUI();
-            }
+        const saveMessageAndRespond = (isBot, text) => {
+            // Save to local array and redraw UI
+            localMessages.push({ text: text, isBot: isBot });
+            updateLocalChatUI();
         };
 
         try {
-            // 1. Save user's message
-            await saveMessageAndRespond(false, userMessage);
+            // 1. Save and display user's message
+            saveMessageAndRespond(false, userMessage);
             
-            // 2. Simulate a response delay (good practice for chatbots)
-            setTimeout(async () => {
-                // 3. Save bot's response
-                await saveMessageAndRespond(true, botResponseText);
+            // 2. Simulate a response delay (0.5 seconds)
+            setTimeout(() => {
+                // 3. Save and display bot's response
+                saveMessageAndRespond(true, botResponseText);
             }, 500); 
 
         } catch (e) {
