@@ -1,0 +1,9 @@
+// Add this new rule to the RESPONSE_RULES array
+{
+    patterns: ["favorite food", "best meal", "like to eat"],
+    responses: ["I enjoy data packets and clean JSON structures!", "As a machine, I consume electricity, but if I had a favorite food, it would be a perfectly optimized database query.", "I have a complex relationship with pizza."]
+}
+
+By separating the **data (`RESPONSE_RULES`)** from the **logic (`generateSimpleResponse`)**, you can easily update the bot's conversational capabilities without changing the underlying code structure.
+
+Let me know if you'd like to try adding a rule that requires two different patterns to match before responding (like a specific "question about a specific topic")!
