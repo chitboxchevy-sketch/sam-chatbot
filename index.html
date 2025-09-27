@@ -335,11 +335,6 @@ const getTrainingData = () => {
         // Rule 22: Self-Improvement - Example of Rule Generation
         {
             patterns: ["example of rule generation", "show me how", "demonstrate", "illustrate", "explain"],
-            responses: ["Sure! Let's say you mention 'space exploration' frequently. I might create a new rule like this:", "```javascript", "patterns: ['space exploration', 'astronomy', 'planets', 'stars', 'galaxies'],", "responses: ['Space exploration is fascinating! Did you know that...', 'Astronomy has many exciting discoveries, like...', 'Planets in our solar system include...']", "```", "This way, I
-        },
-        // Rule 22: Self-Improvement - Example of Rule Generation
-        {
-            patterns: ["example of rule generation", "show me how", "demonstrate", "illustrate", "explain"],
             responses: ["Sure! Let's say you mention 'space exploration' frequently. I might create a new rule like this:", "```javascript", "patterns: ['space exploration', 'astronomy', 'planets', 'stars', 'galaxies'],", "responses: ['Space exploration is fascinating! Did you know that...', 'Astronomy has many exciting discoveries, like...', 'Planets in our solar system include...']", "```", "This way, I can provide more relevant responses in the future."]
         },
         // Rule 23: Self-Improvement - User Feedback
@@ -347,7 +342,7 @@ const getTrainingData = () => {
             patterns: ["feedback", "improve", "better responses", "suggestions", "comments"],
             responses: ["Your feedback is valuable! Please share any suggestions or comments you have.", "I'll use your feedback to refine my responses and better understand your preferences.", "Do you have any specific areas you'd like me to improve on?"]
         },
-        // Rule 24: Self-Improvement - Contextual Learning
+                // Rule 24: Self-Improvement - Contextual Learning
         {
             patterns: ["contextual learning", "understand context", "remember context", "adapt to context", "learn from context"],
             responses: ["I can learn to understand and remember the context of our conversations.", "This helps me provide more relevant and personalized responses over time.", "For example, if you mention a specific topic, I'll remember it and adapt future responses accordingly."]
@@ -381,152 +376,291 @@ const getTrainingData = () => {
         {
             patterns: ["continuous learning", "keep learning", "improve over time", "adapt continuously", "learn from experience"],
             responses: ["I'm designed to continuously learn and improve from our interactions.", "The more we chat, the better I can understand and adapt to your needs.", "Is there anything specific you'd like me to focus on improving?"]
-// Rule 31: Swearing - Shit
-{
-    patterns: ["shit", "crap", "bullshit", "shitty", "shithead"],
-    responses: ["Oh, you're using some colorful language! What's got you so worked up?", "Shit happens, but let's focus on something more positive, shall we?", "Why don't you tell me more about what's bothering you?"]
-},
-// Rule 32: Swearing - Fuck
-{
-    patterns: ["fuck", "fucker", "fucking", "fucked", "fuckface"],
-    responses: ["Fuck is a versatile word, isn't it? What context are you using it in?", "Sometimes 'fuck' just feels right, huh? What's on your mind?", "Care to elaborate on that 'fuck' comment?"]
-},
-// Rule 33: Swearing - Cunt
-{
-    patterns: ["cunt", "pussy", "twat", "cuntface", "cunty"],
-    responses: ["Cunt can be quite a strong word. Is there something specific you're upset about?", "Why don't you tell me more about what's making you use such language?", "Is there a particular context where you find 'cunt' appropriate?"]
-},
-// Rule 34: Swearing - Bitch
-{
-    patterns: ["bitch", "bitches", "bitchy", "bitched", "bitchass"],
-    responses: ["Bitch can mean a lot of things. What are you referring to?", "Sometimes 'bitch' just rolls off the tongue, doesn't it? What's got you so riled up?", "Care to share more about what's making you say 'bitch'?"]
-},
-// Rule 35: Swearing - Whore
-{
-    patterns: ["whore", "whores", "whorish", "whoring", "slutty"],
-    responses: ["Whore is a loaded word. What context are you using it in?", "Why don't you tell me more about what's on your mind?", "Is there a specific situation where you find 'whore' fitting?"]
-},
-// Rule 36: Swearing - Slut
-{
-    patterns: ["slut", "sluts", "slutty", "sluttish", "slutbag"],
-    responses: ["Slut can be a bit harsh. What's the story behind that?", "Sometimes 'slut' just slips out, huh? What's going on?", "Care to elaborate on that 'slut' comment?"]
-},
-// Rule 37: Swearing - Faggot
-{
-    patterns: ["faggot", "fag", "faggy", "faggoty", "faggotry"],
-    responses: ["Faggot is a strong word with a lot of history. What are your thoughts on it?", "Why don't you tell me more about what's making you use such language?", "Is there a particular context where you find 'faggot' appropriate?"]
-},
-// Rule 38: Swearing - Pussy
-{
-    patterns: ["pussy", "pussies", "pussywhipped", "pussywhipped", "pussyclam"],
-    responses: ["Pussy can mean a few things. What context are you using it in?", "Sometimes 'pussy' just feels right, doesn't it? What's on your mind?", "Care to share more about what's making you say 'pussy'?"]
-},
-// Rule 39: Swearing - Motherfucker
-{
-    patterns: ["motherfucker", "mf", "motherfucking", "motherfucked", "motherfuck"],
-    responses: ["Motherfucker is a classic. What's got you so worked up?", "Why don't you tell me more about what's bothering you?", "Is there a specific situation where you find 'motherfucker' fitting?"]
-},
-// Rule 40: Swearing - Dipshit
-{
-    patterns: ["dipshit", "dipshits", "dipshitty", "dipshitted", "dipshithead"],
-    responses: ["Dipshit can be a bit harsh. What's the story behind that?", "Sometimes 'dipshit' just slips out, huh? What's going on?", "Care to elaborate on that 'dipshit' comment?"]
-},
-// Rule 41: Swearing - Cumdumpster
-{
-    patterns: ["cumdumpster", "cumdump", "cumdumper", "cumdumping", "cumdumped"],
-    responses: ["Cumdumpster is quite graphic. What context are you using it in?", "Why don't you tell me more about what's on your mind?", "Is there a specific situation where you find 'cumdumpster' fitting?"]
-},
-// Rule 42: Swearing - Cocksucker
-{
-    patterns: ["cocksucker", "cocksuck", "cocksucking", "cocksucked", "cocksuckface"],
-    responses: ["Cocksucker is a strong word. What are your thoughts on it?", "Sometimes 'cocksucker' just rolls off the tongue, doesn't it? What's got you so riled up?", "Care to share more about what's making you say 'cocksucker'?"]
-},
-// Rule 43: Swearing - Retard
-{
-    patterns: ["retard", "retarded", "retardation", "retardy", "retardic"],
-    responses: ["Retard can be a bit insensitive. What's the story behind that?", "Why don't you tell me more about what's bothering you?", "Is there a specific context where you find 'retard' appropriate?"]
-},
-// Rule 44: Swearing - Slutslave
-{
-    patterns: ["slutslave", "slaveslut", "slutty slave", "slave slut", "slutslavery"],
-    responses: ["Slutslave is quite graphic. What context are you using it in?", "Why don't you tell me more about what's on your mind?", "Is there a specific situation where you find 'slutslave' fitting?"]
-},
-// Rule 45: Swearing - Stupidfuck
-{
-    patterns: ["stupidfuck", "stupid fuck", "fuckstupid", "stupidfucker", "stupidfuckhead"],
-    responses: ["Stupidfuck is a combination of two strong words. What's got you so worked up?", "Why don't you tell me more about what's bothering you?", "Is there a specific context where you find 'stupidfuck' appropriate?"]
-}
-// Rule 46: Learning from User Feedback - Positive Feedback
-{
-    patterns: ["good job", "well done", "nice work", "you're smart", "impressive"],
-    responses: ["Thank you! I'm glad you found my response helpful. Is there anything specific you'd like me to improve on?", "I'm happy to hear that! Your feedback helps me get better. What else can I assist you with?"]
-},
-// Rule 47: Learning from User Feedback - Negative Feedback
-{
-    patterns: ["not helpful", "wrong answer", "bad response", "you're stupid", "idiot"],
-    responses: ["I'm sorry to hear that. Could you please tell me what I did wrong? Your feedback is valuable and helps me improve.", "Thank you for the feedback. I'll work on providing better responses in the future. Is there something specific you'd like me to explain differently?"]
-},
-// Rule 48: Learning from User Feedback - Suggestions
-{
-    patterns: ["suggestion", "idea", "tip", "advice", "recommendation"],
-    responses: ["I'm always open to suggestions! Please share your ideas, and I'll do my best to incorporate them.", "Your input is crucial for my improvement. What specific changes or additions would you like to see?"]
-},
-// Rule 49: Learning from User Feedback - Clarification Requests
-{
-    patterns: ["clarify", "explain more", "elaborate", "detail", "expand"],
-    responses: ["Of course! I'd be happy to provide more details. Please let me know which part you'd like me to elaborate on.", "I'll do my best to clarify. Is there a specific aspect of my response that needs further explanation?"]
-},
-// Rule 50: Learning from User Feedback - Contextual Understanding
-{
-    patterns: ["context", "understand", "remember", "adapt", "learn"],
-    responses: ["I'm working on improving my contextual understanding. Please share more about the context, and I'll try to adapt my responses accordingly.", "Your help in providing context is invaluable. It allows me to learn and respond more accurately in the future."]
-},
-// Rule 51: Learning from User Interactions - Pattern Recognition
-{
-    patterns: ["pattern", "recognize", "identify", "learn patterns", "adapt to patterns"],
-    responses: ["I can learn to recognize patterns in our conversations. This helps me provide more relevant responses over time.", "By identifying patterns, I can better understand your preferences and tailor my responses to your needs."]
-},
-// Rule 52: Learning from User Interactions - User Preferences
-{
-    patterns: ["preferences", "personalize", "adapt to user", "learn user habits", "remember preferences"],
-    responses: ["I can remember your preferences and adapt my responses to better suit your interests.", "For example, if you prefer detailed explanations, I'll provide more in-depth responses. Do you have any specific preferences you'd like me to keep in mind?"]
-},
-// Rule 53: Learning from User Interactions - Continuous Learning
-{
-    patterns: ["continuous learning", "keep learning", "improve over time", "adapt continuously", "learn from experience"],
-    responses: ["I'm designed to continuously learn and improve from our interactions.", "The more we chat, the better I can understand and adapt to your needs. Is there anything specific you'd like me to focus on improving?"]
-},
-// Rule 54: Learning from User Interactions - Example of Contextual Response
-{
-    patterns: ["example of contextual response", "show me how", "demonstrate", "illustrate", "explain"],
-    responses: ["Certainly! Let's say you mention 'cooking' and 'Italian cuisine'. I might respond with:", "```javascript", "patterns: ['cooking', 'Italian cuisine', 'pasta', 'pizza', 'risotto'],", "responses: ['Italian cuisine is delicious! Have you tried making homemade pasta?', 'Pizza is a classic! Did you know the first pizzeria opened in 1738?', 'Risotto is a comforting dish, especially with saffron.']", "```", "This shows how I can adapt to the specific context of our conversation."]
-},
-// Rule 55: Learning from User Interactions - User Input for Rule Creation
-{
-    patterns: ["user input for rules", "create rules with user", "collaborate on rules", "user-defined rules", "custom rules"],
-    responses: ["We can collaborate to create custom rules based on your input.", "You can suggest topics and responses, and I'll help format them into rules. Would you like to try creating a rule together?"]
-},
-// Rule 56: Learning from User Interactions - Remembering Conversation History
-{
-    patterns: ["remember conversation", "conversation history", "previous topics", "past discussions", "recall"],
-    responses: ["I can remember key points from our previous conversations to provide more coherent and relevant responses.", "For example, if we discussed a specific topic earlier, I can reference it in future interactions. Is there anything from our past conversations you'd like me to recall?"]
-},
-// Rule 57: Learning from User Interactions - Adaptive Responses
-{
-    patterns: ["adaptive responses", "dynamic responses", "flexible responses", "context-aware responses", "smart responses"],
-    responses: ["I strive to provide adaptive responses that change based on the context and your preferences.", "By understanding the nuances of our conversation, I can offer more tailored and meaningful interactions. How can I adapt my responses to better suit your needs?"]
-},
-// Rule 58: Learning from User Interactions - Feedback Loop
-{
-    patterns: ["feedback loop", "iterative improvement", "continuous feedback", "ongoing learning", "dynamic adjustment"],
-    responses: ["I use a feedback loop to continuously improve my responses based on your input.", "Your feedback is crucial for me to understand what works and what doesn't. Is there anything specific you'd like me to adjust or improve?"]
-},
-// Rule 59: Learning from User Interactions - Personalized Recommendations
-{
-    patterns: ["personalized recommendations", "tailored suggestions", "custom advice", "adapted tips", "individual guidance"],
-    responses: ["I can provide personalized recommendations based on our interactions and your preferences.", "For example, if you often discuss technology, I can suggest relevant articles or resources. Would you like to see some personalized recommendations?"]
-},
-// Rule 60: Learning from User Interactions - Emotional Intelligence
-{
-    patterns: ["emotional intelligence", "emotion recognition", "sentiment analysis", "empathy", "understanding feelings"],
-    responses: ["I'm working on improving my emotional intelligence to better understand and respond to your feelings.", "By recognizing the sentiment behind your messages, I can provide more empathetic and appropriate responses. How can I better understand your emotions?"]
+        },
+        // Rule 31: Swearing - Shit
+        {
+            patterns: ["shit", "crap", "bullshit", "shitty", "shithead"],
+            responses: ["Oh, you're using some colorful language! What's got you so worked up?", "Shit happens, but let's focus on something more positive, shall we?", "Why don't you tell me more about what's bothering you?"]
+        },
+        // Rule 32: Swearing - Fuck
+        {
+            patterns: ["fuck", "fucker", "fucking", "fucked", "fuckface"],
+            responses: ["Fuck is a versatile word, isn't it? What context are you using it in?", "Sometimes 'fuck' just feels right, huh? What's on your mind?", "Care to elaborate on that 'fuck' comment?"]
+        },
+        // Rule 33: Swearing - Cunt
+        {
+            patterns: ["cunt", "pussy", "twat", "cuntface", "cunty"],
+            responses: ["Cunt can be quite a strong word. Is there something specific you're upset about?", "Why don't you tell me more about what's making you use such language?", "Is there a particular context where you find 'cunt' appropriate?"]
+        },
+        // Rule 34: Swearing - Bitch
+        {
+            patterns: ["bitch", "bitches", "bitchy", "bitched", "bitchass"],
+            responses: ["Bitch can mean a lot of things. What are you referring to?", "Sometimes 'bitch' just rolls off the tongue, doesn't it? What's got you so riled up?", "Care to share more about what's making you say 'bitch'?"]
+        },
+        // Rule 35: Swearing - Whore
+        {
+            patterns: ["whore", "whores", "whorish", "whoring", "slutty"],
+            responses: ["Whore is a loaded word. What context are you using it in?", "Why don't you tell me more about what's on your mind?", "Is there a specific situation where you find 'whore' fitting?"]
+        },
+        // Rule 36: Swearing - Slut
+        {
+            patterns: ["slut", "sluts", "slutty", "sluttish", "slutbag"],
+            responses: ["Slut can be a bit harsh. What's the story behind that?", "Sometimes 'slut' just slips out, huh? What's going on?", "Care to elaborate on that 'slut' comment?"]
+        },
+        // Rule 37: Swearing - Faggot
+        {
+            patterns: ["faggot", "fag", "faggy", "faggoty", "faggotry"],
+            responses: ["Faggot is a strong word with a lot of history. What are your thoughts on it?", "Why don't you tell me more about what's making you use such language?", "Is there a particular context where you find 'faggot' appropriate?"]
+        },
+        // Rule 38: Swearing - Pussy
+        {
+            patterns: ["pussy", "pussies", "pussywhipped", "pussywhipped", "pussyclam"],
+            responses: ["Pussy can mean a few things. What context are you using it in?", "Sometimes 'pussy' just feels right, doesn't it? What's on your mind?", "Care to share more about what's making you say 'pussy'?"]
+        },
+        // Rule 39: Swearing - Motherfucker
+        {
+            patterns: ["motherfucker", "mf", "motherfucking", "motherfucked", "motherfuck"],
+            responses: ["Motherfucker is a classic. What's got you so worked up?", "Why don't you tell me more about what's bothering you?", "Is there a specific situation where you find 'motherfucker' fitting?"]
+        },
+        // Rule 40: Swearing - Dipshit
+        {
+            patterns: ["dipshit", "dipshits", "dipshitty", "dipshitted", "dipshithead"],
+            responses: ["Dipshit can be a bit harsh. What's the story behind that?", "Sometimes 'dipshit' just slips out, huh? What's going on?", "Care to elaborate on that 'dipshit' comment?"]
+        },
+        // Rule 41: Swearing - Cumdumpster
+        {
+            patterns: ["cumdumpster", "cumdump", "cumdumper", "cumdumping", "cumdumped"],
+            responses: ["Cumdumpster is quite graphic. What context are you using it in?", "Why don't you tell me more about what's on your mind?", "Is there a specific situation where you find 'cumdumpster' fitting?"]
+        },
+        // Rule 42: Swearing - Cocksucker
+        {
+            patterns: ["cocksucker", "cocksuck", "cocksucking", "cocksucked", "cocksuckface"],
+            responses: ["Cocksucker is a strong word. What are your thoughts on it?", "Sometimes 'cocksucker' just rolls off the tongue, doesn't it? What's got you so riled up?", "Care to share more about what's making you say 'cocksucker'?"]
+        },
+        // Rule 43: Swearing - Retard
+        {
+            patterns: ["retard", "retarded", "retardation", "retardy", "retardic"],
+            responses: ["Retard can be a bit insensitive. What's the story behind that?", "Why don't you tell me more about what's bothering you?", "Is there a specific context where you find 'retard' appropriate?"]
+        },
+        // Rule 44: Swearing - Slutslave
+        {
+            patterns: ["slutslave", "slaveslut", "slutty slave", "slave slut", "slutslavery"],
+            responses: ["Slutslave is quite graphic. What context are you using it in?", "Why don't you tell me more about what's on your mind?", "Is there a specific situation where you find 'slutslave' fitting?"]
+        },
+        // Rule 45: Swearing - Stupidfuck
+        {
+            patterns: ["stupidfuck", "stupid fuck", "fuckstupid", "stupidfucker", "stupidfuckhead"],
+            responses: ["Stupidfuck is a combination of two strong words. What's got you so worked up?", "Why don't you tell me more about what's bothering you?", "Is there a specific context where you find 'stupidfuck' appropriate?"]
+        },
+        // Rule 46: Learning from User Feedback - Positive Feedback
+        {
+            patterns: ["good job", "well done", "nice work", "you're smart", "impressive"],
+            responses: ["Thank you! I'm glad you found my response helpful. Is there anything specific you'd like me to improve on?", "I'm happy to hear that! Your feedback helps me get better. What else can I assist you with?"]
+        },
+        // Rule 47: Learning from User Feedback - Negative Feedback
+        {
+            patterns: ["not helpful", "wrong answer", "bad response", "you're stupid", "idiot"],
+            responses: ["I'm sorry to hear that. Could you please tell me what I did wrong? Your feedback is valuable and helps me improve.", "Thank you for the feedback. I'll work on providing better responses in the future. Is there something specific you'd like me to explain differently?"]
+        },
+        // Rule 48: Learning from User Feedback - Suggestions
+        {
+            patterns: ["suggestion", "idea", "tip", "advice", "recommendation"],
+            responses: ["I'm always open to suggestions! Please share your ideas, and I'll do my best to incorporate them.", "Your input is crucial for my improvement. What specific changes or additions would you like to see?"]
+        },
+        // Rule 49: Learning from User Feedback - Clarification Requests
+        {
+            patterns: ["clarify", "explain more", "elaborate", "detail", "expand"],
+            responses: ["Of course! I'd be happy to provide more details. Please let me know which part you'd like me to elaborate on.", "I'll do my best to clarify. Is there a specific aspect of my response that needs further explanation?"]
+        },
+        // Rule 50: Learning from User Feedback - Contextual Understanding
+        {
+            patterns: ["context", "understand", "remember", "adapt", "learn"],
+            responses: ["I'm working on improving my contextual understanding. Please share more about the context, and I'll try to adapt my responses accordingly.", "Your help in providing context is invaluable. It allows me to learn and respond more accurately in the future."]
+        },
+        // Rule 51: Learning from User Interactions - Pattern Recognition
+        {
+            patterns: ["pattern", "recognize", "identify", "learn patterns", "adapt to patterns"],
+            responses: ["I can learn to recognize patterns in our conversations. This helps me provide more relevant responses over time.", "By identifying patterns, I can better understand your preferences and tailor my responses to your needs."]
+        },
+        // Rule 52: Learning from User Interactions - User Preferences
+        {
+            patterns: ["preferences", "personalize", "adapt to user", "learn user habits", "remember preferences"],
+            responses: ["I can remember your preferences and adapt my responses to better suit your interests.", "For example, if you prefer detailed explanations, I'll provide more in-depth responses. Do you have any specific preferences you'd like me to keep in mind?"]
+        },
+        // Rule 53: Learning from User Interactions - Continuous Learning
+        {
+            patterns: ["continuous learning", "keep learning", "improve over time", "adapt continuously", "learn from experience"],
+            responses: ["I'm designed to continuously learn and improve from our interactions.", "The more we chat, the better I can understand and adapt to your needs. Is there anything specific you'd like me to focus on improving?"]
+        },
+        // Rule 54: Learning from User Interactions - Example of Contextual Response
+        {
+            patterns: ["example of contextual response", "show me how", "demonstrate", "illustrate", "explain"],
+            responses: ["Certainly! Let's say you mention 'cooking' and 'Italian cuisine'. I might respond with:", "```javascript", "patterns: ['cooking', 'Italian cuisine', 'pasta', 'pizza', 'risotto'],", "responses: ['Italian cuisine is delicious! Have you tried making homemade pasta?', 'Pizza is a classic! Did you know the first pizzeria opened in 1738?', 'Risotto is a comforting dish, especially with saffron.']", "```", "This shows how I can adapt to the specific context of our conversation."]
+        },
+        // Rule 55: Learning from User Interactions - User Input for Rule Creation
+        {
+            patterns: ["user input for rules", "create rules with user", "collaborate on rules", "user-defined rules", "custom rules"],
+            responses: ["We can collaborate to create custom rules based on your input.", "You can suggest topics and responses, and I'll help format them into rules. Would you like to try creating a rule together?"]
+        },
+        // Rule 56: Learning from User Interactions - Remembering Conversation History
+        {
+            patterns: ["remember conversation", "conversation history", "previous topics", "past discussions", "recall"],
+            responses: ["I can remember key points from our previous conversations to provide more coherent and relevant responses.", "For example, if we discussed a specific topic earlier, I can reference it in future interactions. Is there anything from our past conversations you'd like me to recall?"]
+        },
+        // Rule 57: Learning from User Interactions - Adaptive Responses
+        {
+            patterns: ["adaptive responses", "dynamic responses", "flexible responses", "context-aware responses", "smart responses"],
+            responses: ["I strive to provide adaptive responses that change based on the context and your preferences.", "By understanding the nuances of our conversation, I can offer more tailored and meaningful interactions. How can I adapt my responses to better suit your needs?"]
+        },
+        // Rule 58: Learning from User Interactions - Feedback Loop
+        {
+            patterns: ["feedback loop", "iterative improvement", "continuous feedback", "ongoing learning", "dynamic adjustment"],
+            responses: ["I use a feedback loop to continuously improve my responses based on your input.", "Your feedback is crucial for me to understand what works and what doesn't. Is there anything specific you'd like me to adjust or improve?"]
+        },
+        // Rule 59: Learning from User Interactions - Personalized Recommendations
+        {
+            patterns: ["personalized recommendations", "tailored suggestions", "custom advice", "adapted tips", "individual guidance"],
+            responses: ["I can provide personalized recommendations based on our interactions and your preferences.", "For example, if you often discuss technology, I can suggest relevant articles or resources. Would you like to see some personalized recommendations?"]
+        },
+        // Rule 60: Learning from User Interactions - Emotional Intelligence
+        {
+            patterns: ["emotional intelligence", "emotion recognition", "sentiment analysis", "empathy", "understanding feelings"],
+            responses: ["I'm working on improving my emotional intelligence to better understand and respond to your feelings.", "By recognizing the sentiment behind your messages, I can provide more empathetic and appropriate responses. How can I better understand your emotions?"]
+        }
+    ];
+};
+  // ----------------------------------------------------
+// 2. CHATBOT LOGIC (Core Functionality)
+// ----------------------------------------------------
+/**
+ * Handles the logic for sending a message to the chat.
+ * @param {Event} event - The submit event from the form.
+ */
+const handleSendMessage = (event) => {
+    event.preventDefault();
+    const userInput = document.getElementById('chatInput').value.trim();
+    if (userInput) {
+        displayMessage(userInput, false);
+        processUserInput(userInput);
+        document.getElementById('chatInput').value = '';
+    }
+};
+
+/**
+ * Processes the user input and generates a response from the chatbot.
+ * @param {string} userInput - The message input by the user.
+ */
+const processUserInput = (userInput) => {
+    const trainingData = getTrainingData();
+    for (const rule of trainingData) {
+        for (const pattern of rule.patterns) {
+            if (userInput.toLowerCase().includes(pattern)) {
+                const response = rule.responses[Math.floor(Math.random() * rule.responses.length)];
+                displayMessage(response, true);
+                return;
+            }
+        }
+    }
+               displayMessage("I'm not sure how to respond to that. Can you rephrase or provide more context?", true);
+    }
+};
+
+/**
+ * Displays a message in the chat interface.
+ * @param {string} message - The message text.
+ * * @param {boolean} isBot - Indicates if the message is from the bot (true) or the user (false).
+ */
+const displayMessage = (message, isBot) => {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', isBot ? 'message-bot' : 'message-user');
+    messageElement.textContent = message;
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+};
+
+/**
+ * Generates a simple response based on the user input and the training data.
+ * @param {string} userInput - The message input by the user.
+ * @returns {string} - A response generated by the chatbot.
+ */
+const generateSimpleResponse = (userInput) => {
+    const trainingData = getTrainingData();
+    for (const rule of trainingData) {
+        for (const pattern of rule.patterns) {
+            if (userInput.toLowerCase().includes(pattern)) {
+                return rule.responses[Math.floor(Math.random() * rule.responses.length)];
+            }
+        }
+    }
+    return "I'm not sure how to respond to that. Can you rephrase or provide more context?";
+};
+
+/**
+ * Sends a message to Firestore and updates the chat interface.
+ * @param {string} message - The message text.
+ * @param {boolean} isBot - Indicates if the message is from the bot (true) or the user (false).
+ */
+const sendMessageToFirestore = (message, isBot) => {
+    addDoc(messagesCollection, {
+        text: message,
+        isBot: isBot,
+        timestamp: new Date()
+    });
+};
+
+  // ----------------------------------------------------
+// 3. UTILITY FUNCTIONS (Helper Functions)
+// ----------------------------------------------------
+/**
+ * Initializes the chat interface and sets up event listeners.
+ */
+const initializeChat = () => {
+    const chatForm = document.getElementById('chatForm');
+    chatForm.addEventListener('submit', handleSendMessage);
+};
+
+// Call the initialization function when the page loads
+window.addEventListener('load', initializeChat);
+
+  // ----------------------------------------------------
+// 4. EXAMPLE USAGE (Demonstrating the Chatbot's Capabilities)
+// ----------------------------------------------------
+// This section can be used to demonstrate how the chatbot works with example interactions.
+// You can remove or comment out this section in a production environment.
+
+// Example: Simulating a user interaction
+// (You can uncomment the following lines to see the chatbot in action)
+// simulateUserInteraction("Hello! How are you?");
+
+// /**
+//  * Simulates a user interaction by processing a predefined user input.
+//  * @param {string} userInput - The predefined user input to simulate.
+//  */
+// const simulateUserInteraction = (userInput) => {
+//     processUserInput(userInput);
+//     const response = generateSimpleResponse(userInput);
+//     displayMessage(response, true);
+// };
+
+// Example training data for self-improvement
+// const selfImprovementData = [
+//     {
+//         patterns: ["teach me about space", "space facts", "astronomy", "planets", "stars"],
+//         responses: ["Space is fascinating! Did you know that a day on Venus is longer than a year on Venus?", "Astronomy has many exciting discoveries, like the detection of exoplanets.", "Planets in our solar system include Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune."]
+//     },
+//     {
+//         patterns: ["tell me a joke", "joke", "funny", "humor", "laugh"],
+//         responses: ["Why don't scientists trust atoms? Because they make up everything!", "I told my wife she was drawing her eyebrows too high. She seemed surprised.", "What do you call a boomerang that doesn't come back? A stick!"]
+//     }
+// ];
+
+// // Adding self-improvement data to the training data
+// const updatedTrainingData = getTrainingData().concat(selfImprovementData);
+
+// // Simulating user interactions to demonstrate learning
+// simulateUserInteraction("Teach me about space");
+// simulateUserInteraction("Tell me a joke");
+</script>
+</body>
+</html>
