@@ -171,33 +171,21 @@
         console.error("Firebase config not available. App will not be able to use Firestore.");
     }
 
-    // Authenticate the user. If an auth token is provided, use it. Otherwise, sign in anonymously.
-    const authenticateUser = async () => {
-        try {
-            if (auth) {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                userId = auth.currentUser.uid;
-                document.getElementById('userIdDisplay').textContent = userId;
-                console.log("User authenticated with ID:", userId);
-                setupRealtimeListener();
-            }
-        } catch (error) {
-            console.error("Authentication failed:", error);
-            document.getElementById('userIdDisplay').textContent = "Auth failed";
-        }
-    };
-
-    // Call the authentication function on page load
-    authenticateUser();
-
     // --- Firestore Data Management ---
-
+    
     // Data is stored at /artifacts/{appId}/public/data/messages (for shared chat history)
     const messagesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+
+    // Function to display a message in the UI (Necessary for the listener to work)
+    const displayMessage = (text, isBot) => {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message', isBot ? 'message-bot' : 'message-user');
+        messageDiv.textContent = text;
+        messagesContainer.appendChild(messageDiv);
+        // Auto-scroll to the bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
 
     // Sets up a real-time listener to fetch and display messages
     const setupRealtimeListener = () => {
@@ -217,16 +205,37 @@
             console.error("Error listening to messages:", error);
         });
     };
+    
+    // Authenticate the user. If an auth token is provided, use it. Otherwise, sign in anonymously.
+    // NOTE: This is placed after setupRealtimeListener definition to ensure no 'undefined' error occurs.
+    const authenticateUser = async () => {
+        try {
+            if (auth) {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                userId = auth.currentUser.uid;
+                document.getElementById('userIdDisplay').textContent = userId;
+                console.log("User authenticated with ID:", userId);
+                setupRealtimeListener(); // Now guaranteed to be defined
+            }
+        } catch (error) {
+            console.error("Authentication failed:", error);
+            document.getElementById('userIdDisplay').textContent = "Auth failed";
+        }
+    };
 
-  // ----------------------------------------------------
-// 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
-// ----------------------------------------------------
-/**
- * Returns the rule-based knowledge base for the chatbot.
- * This function acts as the import point for the "training data."
- */
-const getTrainingData = () => {
-    return [
+
+    // --- CHATBOT CORE LOGIC (ASSEMBLY REQUIRED AREA) ---
+    
+    // ----------------------------------------------------
+    // 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
+    // IMPORTANT: REPLACE THIS DEFAULT DATA WITH YOUR CUSTOMIZED RULES.
+    // ----------------------------------------------------
+    const getTrainingData = () => {
+        return [
         // Rule 1: Greetings
         {
             patterns: ["hello", "hi", "hey", "greetings"],
