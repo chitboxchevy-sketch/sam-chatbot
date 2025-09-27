@@ -117,6 +117,10 @@
             border-top-right-radius: 1rem;
             border-bottom: 1px solid #4a5568;
         }
+        .local-warning {
+            color: #f6ad55;
+            font-size: 0.75rem;
+        }
     </style>
 </head>
 <body>
@@ -124,6 +128,7 @@
 <div class="chat-container">
     <div class="user-id-display">
         <p>User ID: <span id="userIdDisplay">Loading...</span></p>
+        <p id="envWarning" class="local-warning"></p>
     </div>
     <div id="chatMessages" class="chat-messages">
         <!-- Messages will be injected here by JavaScript -->
@@ -147,36 +152,105 @@
     // --- Core Application Setup and Firebase Initialization ---
 
     // Global variables for Firebase services and app context
-    let db;
-    let auth;
-    let userId;
-    let appId;
+    let db = null;
+    let auth = null;
+    let userId = 'Local-User';
+    let appId = 'default-app-id';
+    
+    // Fallback for local/GitHub Pages environment
+    let localMessages = [
+        { text: 'Welcome! My "training data" is now loaded from a separate function, making it easier to manage. Try asking about my **favorite color** or just say **Hello**.', isBot: true }
+    ];
 
-    // These variables are provided by the canvas environment. Do not modify.
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    // Check if running in the Canvas environment (where variables are provided)
+    const isCanvasEnvironment = typeof __firebase_config !== 'undefined' && __firebase_config;
 
-    // Initialize Firebase
-    if (firebaseConfig) {
+    if (isCanvasEnvironment) {
+        // Variables for Canvas Environment
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Initialize Firebase
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            console.log("Firebase initialized successfully.");
+            console.log("Firebase initialized successfully (Canvas Mode).");
         } catch (error) {
             console.error("Error initializing Firebase:", error);
+            // If initialization fails even with config, treat it as a local environment fallback
+            document.getElementById('envWarning').textContent = "FIREBASE FAILED. Using Local Storage Mode.";
         }
+        
+        // Data is stored at /artifacts/{appId}/public/data/messages (for shared chat history)
+        var messagesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+
+        // Authenticate the user (Firebase Mode)
+        const authenticateUser = async () => {
+            try {
+                if (auth) {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    userId = auth.currentUser.uid;
+                    document.getElementById('userIdDisplay').textContent = userId;
+                    console.log("User authenticated with ID:", userId);
+                    setupRealtimeListener();
+                }
+            } catch (error) {
+                console.error("Firebase Authentication failed:", error);
+                document.getElementById('userIdDisplay').textContent = "Auth failed";
+            }
+        };
+        
+        // Sets up a real-time listener (Firebase Mode)
+        var setupRealtimeListener = () => {
+            const q = query(messagesCollection, orderBy('timestamp'));
+
+            onSnapshot(q, (snapshot) => {
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = ''; // Clear existing messages
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    displayMessage(data.text, data.isBot);
+                });
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, (error) => {
+                console.error("Error listening to messages:", error);
+            });
+        };
+        
+        authenticateUser(); // Start Firebase auth process
+        
     } else {
-        console.error("Firebase config not available. App will not be able to use Firestore.");
+        // Fallback for Local/GitHub Pages Mode
+        document.getElementById('envWarning').textContent = "Running in Local Mode (No Firebase/History will be saved).";
+        
+        // Use a simple UUID for a fake user ID
+        userId = 'Local-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        document.getElementById('userIdDisplay').textContent = userId;
+        
+        // Function to update UI from localMessages array
+        var updateLocalChatUI = () => {
+             const messagesContainer = document.getElementById('chatMessages');
+             messagesContainer.innerHTML = '';
+             localMessages.forEach(msg => displayMessage(msg.text, msg.isBot));
+             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+        
+        // Initial load of local message history
+        updateLocalChatUI();
+        console.log("Running in local mode. Firestore operations disabled.");
     }
 
-    // --- Firestore Data Management ---
-    
-    // Data is stored at /artifacts/{appId}/public/data/messages (for shared chat history)
-    const messagesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
 
-    // Function to display a message in the UI (Necessary for the listener to work)
+    // --- Shared UI Logic (Works in both environments) ---
+
+    // Function to display a message in the UI
     const displayMessage = (text, isBot) => {
         const messagesContainer = document.getElementById('chatMessages');
         const messageDiv = document.createElement('div');
@@ -186,56 +260,119 @@
         // Auto-scroll to the bottom
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     };
+    
 
-    // Sets up a real-time listener to fetch and display messages
-    const setupRealtimeListener = () => {
-        const q = query(messagesCollection, orderBy('timestamp'));
-
-        onSnapshot(q, (snapshot) => {
-            const messagesContainer = document.getElementById('chatMessages');
-            messagesContainer.innerHTML = ''; // Clear existing messages
-
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                displayMessage(data.text, data.isBot);
-            });
-            // Scroll to the bottom of the chat after new messages are loaded
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, (error) => {
-            console.error("Error listening to messages:", error);
-        });
+    // --- CHATBOT CORE LOGIC (Training Data and Interpreter) ---
+    
+    // 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
+    const getTrainingData = () => {
+        return [
+            // Rule 1: Greetings
+            {
+                patterns: ["hello", "hi", "hey", "greetings"],
+                responses: ["Hello there! How can I assist you?", "Hi! I'm here to demonstrate rule-based chat.", "Greetings! It's nice to chat with you."]
+            },
+            // Rule 2: Status Check
+            {
+                patterns: ["how are you", "how are things", "status"],
+                responses: ["I am a bot, so I'm functioning optimally! Thanks for checking in.", "Running smoothly on JavaScript. You?", "I'm doing great in the digital realm."]
+            },
+            // Rule 3: Inquiry about the bot
+            {
+                patterns: ["who are you", "what are you", "your purpose"],
+                responses: ["I am the Chatbot Logic Kit, designed for educational assembly.", "I'm here to show you how basic conversational logic works.", "My purpose is to be trained by you!"]
+            },
+            // Rule 4: Favorite Color (An example of specific knowledge)
+            {
+                patterns: ["favorite color", "colour", "best color"],
+                responses: ["My favorite color is hexadecimal blue: #3182CE.", "As a digital entity, I prefer the color of the screen I'm displayed on.", "I like the color of clean code."]
+            },
+            // Rule 5: Basic farewell
+            {
+                patterns: ["bye", "goodbye", "see you later"],
+                responses: ["Goodbye! Come back soon.", "Farewell! Happy coding.", "See you next time!"]
+            },
+            // Rule 6: Training Example (Feel free to customize this one!)
+            {
+                patterns: ["training", "how do you work", "learn"],
+                responses: ["I learn through keyword pattern matching inside the getTrainingData function.", "My brain is just a simple set of JavaScript rules—no complex API needed!", "To train me, add a new 'patterns' and 'responses' object."]
+            }
+        ];
     };
     
-    // Authenticate the user. If an auth token is provided, use it. Otherwise, sign in anonymously.
-    // NOTE: This is placed after setupRealtimeListener definition to ensure no 'undefined' error occurs.
-    const authenticateUser = async () => {
-        try {
-            if (auth) {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                userId = auth.currentUser.uid;
-                document.getElementById('userIdDisplay').textContent = userId;
-                console.log("User authenticated with ID:", userId);
-                setupRealtimeListener(); // Now guaranteed to be defined
+    /**
+     * Finds a matching response based on the defined training data.
+     * This function is the bot's "interpreter" and processing logic.
+     */
+    const generateSimpleResponse = (userText) => {
+        const lowerText = userText.toLowerCase();
+        const rules = getTrainingData();
+
+        for (const rule of rules) {
+            const isMatch = rule.patterns.some(pattern => lowerText.includes(pattern));
+
+            if (isMatch) {
+                const randomIndex = Math.floor(Math.random() * rule.responses.length);
+                return rule.responses[randomIndex];
             }
-        } catch (error) {
-            console.error("Authentication failed:", error);
-            document.getElementById('userIdDisplay').textContent = "Auth failed";
+        }
+        
+        // Fallback Rule (The "needs more training" response)
+        return "I apologize, but I don't have a rule for that specific topic yet. My 'training' needs to be updated with that knowledge!";
+    };
+
+    // --- Main Send Message Handler (Environment Switch) ---
+
+    // Function to send a message (handles both Firebase and Local Mode)
+    window.handleSendMessage = async (event) => {
+        event.preventDefault();
+        const inputField = document.getElementById('chatInput');
+        const userMessage = inputField.value.trim();
+
+        if (!userMessage) return;
+
+        inputField.value = '';
+        const botResponseText = generateSimpleResponse(userMessage);
+
+        const saveMessageAndRespond = async (isBot, text) => {
+            if (isCanvasEnvironment && db) {
+                // FIREBASE MODE: Save message to Firestore
+                await addDoc(messagesCollection, {
+                    text: text,
+                    isBot: isBot,
+                    timestamp: new Date().toISOString()
+                });
+            } else {
+                // LOCAL/GITHUB PAGES MODE: Save to local array and redraw UI
+                localMessages.push({ text: text, isBot: isBot });
+                updateLocalChatUI();
+            }
+        };
+
+        try {
+            // 1. Save user's message
+            await saveMessageAndRespond(false, userMessage);
+            
+            // 2. Simulate a response delay (good practice for chatbots)
+            setTimeout(async () => {
+                // 3. Save bot's response
+                await saveMessageAndRespond(true, botResponseText);
+            }, 500); 
+
+        } catch (e) {
+            console.error("Error during message process: ", e);
         }
     };
 
-
-    // --- CHATBOT CORE LOGIC (ASSEMBLY REQUIRED AREA) ---
-    
-    // ----------------------------------------------------
-    // 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
-    // IMPORTANT: REPLACE THIS DEFAULT DATA WITH YOUR CUSTOMIZED RULES.
-    // ----------------------------------------------------
-    const getTrainingData = () => {
-        return [
+  // ----------------------------------------------------
+// 1. CHATBOT "TRAINING DATA" (Modularized Knowledge Base)
+// ----------------------------------------------------
+/**
+ * Returns the rule-based knowledge base for the chatbot.
+ * This function acts as the import point for the "training data."
+ */
+const getTrainingData = () => {
+    return [
         // Rule 1: Greetings
         {
             patterns: ["hello", "hi", "hey", "greetings"],
@@ -671,5 +808,6 @@ window.addEventListener('load', initializeChat);
 // simulateUserInteraction("Teach me about space");
 // simulateUserInteraction("Tell me a joke");
 </script>
+
 </body>
 </html>
