@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Builder Kit</title>
+    <title>Chatbot Training Data Kit</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Use Inter font from Google Fonts -->
@@ -128,7 +128,7 @@
     <div id="chatMessages" class="chat-messages">
         <!-- Messages will be injected here by JavaScript -->
         <div class="message message-bot">
-            Hello! This is your blank slate chatbot kit. Start typing to see how it works.
+            Welcome! I've been given some initial "training data." Try asking me about my **favorite color** or just say **Hello**.
         </div>
     </div>
     <form id="chatForm" class="chat-input" onsubmit="handleSendMessage(event)">
@@ -196,15 +196,11 @@
 
     // --- Firestore Data Management ---
     
-    // NOTE: This application uses a public collection so that multiple users can
-    // view the same chat history if they are part of the same application.
-    // The security rules for this collection are already set up.
-    // Data is stored at /artifacts/{appId}/public/data/messages
+    // Data is stored at /artifacts/{appId}/public/data/messages (for shared chat history)
     const messagesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
 
     // Sets up a real-time listener to fetch and display messages
     const setupRealtimeListener = () => {
-        // Query to get all messages, ordered by creation time
         const q = query(messagesCollection, orderBy('timestamp'));
 
         onSnapshot(q, (snapshot) => {
@@ -220,6 +216,66 @@
         }, (error) => {
             console.error("Error listening to messages:", error);
         });
+    };
+
+    // --- CHATBOT CORE LOGIC (ASSEMBLY REQUIRED AREA) ---
+    
+    // ----------------------------------------------------
+    // 1. CHATBOT "TRAINING DATA" (Rule-based Knowledge Base)
+    // ----------------------------------------------------
+    const RESPONSE_RULES = [
+        // Rule 1: Greetings
+        {
+            patterns: ["hello", "hi", "hey", "greetings"],
+            responses: ["Hello there! How can I assist you?", "Hi! I'm here to demonstrate rule-based chat.", "Greetings! It's nice to chat with you."]
+        },
+        // Rule 2: Status Check
+        {
+            patterns: ["how are you", "how are things", "status"],
+            responses: ["I am a bot, so I'm functioning optimally! Thanks for checking in.", "Running smoothly on JavaScript. You?", "I'm doing great in the digital realm."]
+        },
+        // Rule 3: Inquiry about the bot
+        {
+            patterns: ["who are you", "what are you", "your purpose"],
+            responses: ["I am the Chatbot Logic Kit, designed for educational assembly.", "I'm here to show you how basic conversational logic works.", "My purpose is to be trained by you!"]
+        },
+        // Rule 4: Favorite Color (An example of specific knowledge)
+        {
+            patterns: ["favorite color", "colour", "best color"],
+            responses: ["My favorite color is hexadecimal blue: #3182CE.", "As a digital entity, I prefer the color of the screen I'm displayed on.", "I like the color of clean code."]
+        },
+        // Rule 5: Basic farewell
+        {
+            patterns: ["bye", "goodbye", "see you later"],
+            responses: ["Goodbye! Come back soon.", "Farewell! Happy coding.", "See you next time!"]
+        }
+    ];
+    // ----------------------------------------------------
+
+
+    /**
+     * Finds a matching response based on the defined RESPONSE_RULES.
+     * This function is the bot's "interpreter" and processing logic.
+     * @param {string} userText - The message sent by the user.
+     * @returns {string} The bot's reply.
+     */
+    const generateSimpleResponse = (userText) => {
+        const lowerText = userText.toLowerCase();
+
+        // Iterate through all the defined rules
+        for (const rule of RESPONSE_RULES) {
+            // Check if the user's message contains any of the rule's trigger patterns
+            const isMatch = rule.patterns.some(pattern => lowerText.includes(pattern));
+
+            if (isMatch) {
+                // If a match is found, pick a random response from the available list
+                const randomIndex = Math.floor(Math.random() * rule.responses.length);
+                return rule.responses[randomIndex];
+            }
+        }
+        
+        // Fallback Rule (The "needs more training" response)
+        return "I apologize, but I don't have a rule for that specific topic yet. Try asking me about my **favorite color** or saying **hello**!";
     };
 
     // --- UI and Chat Logic ---
@@ -241,9 +297,9 @@
         const inputField = document.getElementById('chatInput');
         const userMessage = inputField.value.trim();
 
-        if (!userMessage) return;
+        if (!userMessage || !db) return;
 
-        // Display user's message immediately and save it to Firestore
+        // 1. Save user's message to Firestore
         try {
             await addDoc(messagesCollection, {
                 text: userMessage,
@@ -252,25 +308,24 @@
             });
             inputField.value = '';
 
-            // --- The "Blank Slate" Chatbot Logic ---
-            // This is where you would add your own chatbot logic.
-            // Currently, it just provides a hardcoded, non-conversational response.
-            // The `setTimeout` simulates a delay, as a real bot would have.
-            // You can replace this section with your own code to integrate an API.
+            // 2. Generate the bot's response using the rule-based logic
+            const botResponseText = generateSimpleResponse(userMessage);
+
+            // 3. Simulate a response delay (good practice for chatbots)
             setTimeout(async () => {
-                const botResponseText = "This chatbot is a blank slate. Add your own logic here to make it respond to this message!";
                 await addDoc(messagesCollection, {
                     text: botResponseText,
                     isBot: true,
                     timestamp: new Date().toISOString()
                 });
-            }, 500); // Simulate a slight delay
+            }, 500); 
 
         } catch (e) {
-            console.error("Error adding document: ", e);
+            console.error("Error adding document or generating response: ", e);
         }
     };
 </script>
 
 </body>
 </html>
+
