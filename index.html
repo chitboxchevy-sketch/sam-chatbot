@@ -195,7 +195,7 @@
     authenticateUser();
 
     // --- Firestore Data Management ---
-    
+
     // Data is stored at /artifacts/{appId}/public/data/messages (for shared chat history)
     const messagesCollection = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
 
@@ -331,6 +331,11 @@ const getTrainingData = () => {
         {
             patterns: ["learn from conversation", "improve responses", "adapt to user", "remember patterns", "generate new rules"],
             responses: ["I can learn from our conversations by identifying patterns and adapting my responses.", "As we chat, I'll remember the contexts and topics you're interested in.", "Would you like to see an example of how I can generate new rules based on our interaction?"]
+        },
+        // Rule 22: Self-Improvement - Example of Rule Generation
+        {
+            patterns: ["example of rule generation", "show me how", "demonstrate", "illustrate", "explain"],
+            responses: ["Sure! Let's say you mention 'space exploration' frequently. I might create a new rule like this:", "```javascript", "patterns: ['space exploration', 'astronomy', 'planets', 'stars', 'galaxies'],", "responses: ['Space exploration is fascinating! Did you know that...', 'Astronomy has many exciting discoveries, like...', 'Planets in our solar system include...']", "```", "This way, I
         },
         // Rule 22: Self-Improvement - Example of Rule Generation
         {
@@ -525,87 +530,3 @@ const getTrainingData = () => {
 {
     patterns: ["emotional intelligence", "emotion recognition", "sentiment analysis", "empathy", "understanding feelings"],
     responses: ["I'm working on improving my emotional intelligence to better understand and respond to your feelings.", "By recognizing the sentiment behind your messages, I can provide more empathetic and appropriate responses. How can I better understand your emotions?"]
-}
-        }
-    ];
-};
-    ;
-
-
-    /**
-     * Finds a matching response based on the defined training data.
-     * This function is the bot's "interpreter" and processing logic.
-     * @param {string} userText - The message sent by the user.
-     * @returns {string} The bot's reply.
-     */
-    const generateSimpleResponse = (userText) => {
-        const lowerText = userText.toLowerCase();
-        // Fetch the rules using the dedicated function
-        const rules = getTrainingData();
-
-        // Iterate through all the defined rules
-        for (const rule of rules) {
-            // Check if the user's message contains any of the rule's trigger patterns
-            const isMatch = rule.patterns.some(pattern => lowerText.includes(pattern));
-
-            if (isMatch) {
-                // If a match is found, pick a random response from the available list
-                const randomIndex = Math.floor(Math.random() * rule.responses.length);
-                return rule.responses[randomIndex];
-            }
-        }
-        
-        // Fallback Rule (The "needs more training" response)
-        return "I apologize, but I don't have a rule for that specific topic yet. Try asking me about my **favorite color** or saying **hello**!";
-    };
-
-    // --- UI and Chat Logic ---
-
-    // Function to display a message in the UI
-    const displayMessage = (text, isBot) => {
-        const messagesContainer = document.getElementById('chatMessages');
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', isBot ? 'message-bot' : 'message-user');
-        messageDiv.textContent = text;
-        messagesContainer.appendChild(messageDiv);
-        // Auto-scroll to the bottom
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    };
-
-    // Function to send a message to Firestore and trigger a bot response
-    window.handleSendMessage = async (event) => {
-        event.preventDefault();
-        const inputField = document.getElementById('chatInput');
-        const userMessage = inputField.value.trim();
-
-        if (!userMessage || !db) return;
-
-        // 1. Save user's message to Firestore
-        try {
-            await addDoc(messagesCollection, {
-                text: userMessage,
-                isBot: false,
-                timestamp: new Date().toISOString()
-            });
-            inputField.value = '';
-
-            // 2. Generate the bot's response using the rule-based logic
-            const botResponseText = generateSimpleResponse(userMessage);
-
-            // 3. Simulate a response delay (good practice for chatbots)
-            setTimeout(async () => {
-                await addDoc(messagesCollection, {
-                    text: botResponseText,
-                    isBot: true,
-                    timestamp: new Date().toISOString()
-                });
-            }, 500); 
-
-        } catch (e) {
-            console.error("Error adding document or generating response: ", e);
-        }
-    };
-</script>
-
-</body>
-</html>
