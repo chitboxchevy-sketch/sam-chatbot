@@ -3,249 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Logic Kit</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Open Collaborative Whiteboard</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use Inter font from Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Load Firebase/Firestore -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, addDoc, getDocs, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables will be defined here (db, appId)
+        window.firebaseApp = {};
+
+        // --- Utility to handle UI state transition (show or hide loader) ---
+        const handleUiState = (success, message = '') => {
+            const statusDiv = document.getElementById('loading-status');
+            const boardContainer = document.getElementById('boardContainer');
+
+            statusDiv.style.display = 'flex';
+            statusDiv.classList.remove('h-full');
+
+            const messageElement = document.getElementById('loading-message');
+            const spinner = document.getElementById('loading-spinner');
+
+            if (success) {
+                // Success: Hide loader, show board
+                statusDiv.classList.add('hidden');
+                boardContainer.classList.remove('hidden');
+            } else {
+                // Failure: Show error message clearly
+                if(spinner) spinner.classList.add('hidden');
+                messageElement.textContent = message || 'A critical error occurred. Check console for details.';
+                statusDiv.classList.remove('text-indigo-600');
+                statusDiv.classList.add('text-red-600', 'font-semibold');
+                boardContainer.classList.add('hidden');
+            }
+        };
+
+        // --- Firebase Setup ---
+        const setupFirebase = async () => {
+            let db;
+            try {
+                // =========================================================================
+                // CONFIGURED WITH YOUR PROVIDED SDK VALUES
+                // =========================================================================
+                const FIREBASE_CONFIG = {
+                    apiKey: "AIzaSyBPJz07Qe86sjfYP18EwFRzZkbw3sBJaI0",
+                    authDomain: "writing-on-the-wall5656.firebaseapp.com",
+                    projectId: "writing-on-the-wall5656",
+                    storageBucket: "writing-on-the-wall5656.firebasestorage.app",
+                    messagingSenderId: "668534703439",
+                    appId: "1:668534703439:web:f40e9f9952ae6647e0713a"
+                };
+
+                const firebaseConfig = FIREBASE_CONFIG;
+                const appId = FIREBASE_CONFIG.projectId;
+                
+                // Set Firestore logging to debug level
+                setLogLevel('Debug');
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                
+                // Store globals and initialize whiteboard
+                window.firebaseApp.db = db;
+                window.firebaseApp.appId = appId;
+                
+                initWhiteboard(db, appId);
+                handleUiState(true);
+
+
+            } catch (error) {
+                console.error("CRITICAL Firebase setup failure:", error);
+                handleUiState(false, 'Setup Failed: ' + error.message);
+            }
+        };
+
+        // --- Whiteboard Logic ---
+        const initWhiteboard = (db, appId) => {
+            const canvas = document.getElementById('whiteboardCanvas');
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx) {
+                console.error("Failed to get 2D context for canvas.");
+                return;
+            }
+
+            const colorPicker = document.getElementById('colorPicker');
+            const sizeSlider = document.getElementById('sizeSlider');
+            const clearButton = document.getElementById('clearButton');
+            const eraseButton = document.getElementById('eraseButton');
+
+            let drawing = false;
+            let isErasing = false;
+            let lastPoint = null;
+            let currentStroke = [];
+            let strokesData = {}; // Stores all strokes for persistent drawing
+
+            let currentColor = colorPicker.value;
+            let currentSize = parseInt(sizeSlider.value, 10);
+            let clearTimer = null;
+
+            // Path to public data collection (collaborative)
+            const DRAWINGS_COLLECTION_PATH = `/artifacts/${appId}/public/data/drawings`;
+            // Path to a single control document to manage board clearing
+            const CONTROL_DOC_PATH = `/artifacts/${appId}/public/data/control/board_state`;
+
+            // --- Utility Functions ---
+
+            // Function to generate the trash icon SVG
+            const getTrashIcon = () => `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            `;
+
+            // Function to reset the clear button to its default hidden state
+            const resetClearButton = () => {
+                clearButton.innerHTML = getTrashIcon();
+                clearButton.classList.remove('bg-red-500', 'text-white', 'hover:bg-red-600', 'shadow-md', 'w-20');
+                clearButton.classList.add('text-gray-400', 'hover:text-red-500', 'hover:bg-red-50', 'w-10');
+            };
+
+            // --- Canvas Utility Functions (Reordered for dependency) ---
+            
+            const getPoint = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+
+                // Handle touch events
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                // Calculate relative coordinates
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                // Normalize coordinates to percentage of current canvas size
+                const normalizedX = x / canvas.width;
+                const normalizedY = y / canvas.height;
+
+                return { x, y, normalizedX, normalizedY };
+            };
+
+            const drawLine = (p1, p2, color, size) => {
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = size;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+            };
+
+            const redrawAllStrokes = () => {
+                // Clear the entire canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Check for last cleared time
+                const lastClearedTime = strokesData.lastClearedAt || 0;
+
+                // Iterate over all stored strokes and redraw them
+                Object.values(strokesData)
+                    .filter(stroke => stroke.timestamp && stroke.timestamp > lastClearedTime)
+                    .sort((a, b) => a.timestamp - b.timestamp) // Sort by timestamp for correct rendering order
+                    .forEach(stroke => {
+                        if (stroke.points && stroke.points.length > 1) {
+                            for (let i = 1; i < stroke.points.length; i++) {
+                                const p1Norm = stroke.points[i - 1];
+                                const p2Norm = stroke.points[i];
+                                
+                                // Denormalize points to current canvas coordinates
+                                const p1 = { x: p1Norm.normalizedX * canvas.width, y: p1Norm.normalizedY * canvas.height };
+                                const p2 = { x: p2Norm.normalizedX * canvas.width, y: p2Norm.normalizedY * canvas.height };
+
+                                // Use background color for erasing, or the stroke's color
+                                const color = stroke.isErasing ? '#ffffff' : stroke.color;
+
+                                drawLine(p1, p2, color, stroke.size);
+                            }
+                        }
+                    });
+            };
+
+            const resizeCanvas = () => {
+                const container = canvas.parentElement;
+                // Set the canvas size based on its container, which is responsive (w-full, h-full)
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                redrawAllStrokes(); // Redraw everything on resize
+            };
+
+            // Initial resize and listener for window resize
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // --- Input Handlers ---
+
+            const startDrawing = (e) => {
+                e.preventDefault();
+                // If a clear confirmation is pending, cancel it
+                if (clearTimer) {
+                    clearTimeout(clearTimer);
+                    clearTimer = null;
+                    resetClearButton();
+                }
+
+                drawing = true;
+                currentStroke = [];
+                lastPoint = getPoint(e);
+                currentStroke.push(lastPoint);
+            };
+
+            const draw = (e) => {
+                if (!drawing) return;
+                e.preventDefault();
+                const newPoint = getPoint(e);
+
+                // Draw the line segment locally
+                const color = isErasing ? '#ffffff' : currentColor;
+                drawLine(lastPoint, newPoint, color, currentSize);
+
+                // Store the normalized point for Firestore upload
+                currentStroke.push(newPoint);
+                lastPoint = newPoint;
+            };
+
+            const stopDrawing = () => {
+                if (!drawing) return;
+                drawing = false;
+
+                // Only save the stroke if it has more than one point (a line segment)
+                if (currentStroke.length > 1) {
+                    saveStrokeToFirestore(currentStroke);
+                }
+                currentStroke = [];
+                lastPoint = null;
+            };
+
+            // --- Firestore Operations ---
+
+            const saveStrokeToFirestore = async (points) => {
+                try {
+                    // Extract only the normalized coordinates and properties needed for storage
+                    const normalizedPoints = points.map(p => ({
+                        normalizedX: p.normalizedX,
+                        normalizedY: p.normalizedY
+                    }));
+
+                    await addDoc(collection(db, DRAWINGS_COLLECTION_PATH), {
+                        color: currentColor,
+                        size: currentSize,
+                        isErasing: isErasing,
+                        points: normalizedPoints,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (error) {
+                    console.error("Error saving stroke to Firestore:", error);
+                }
+            };
+
+            const executeClearBoard = async () => {
+                try {
+                    // 1. Update the control document to signal a clear event
+                    await setDoc(doc(db, CONTROL_DOC_PATH), {
+                        lastClearedAt: Date.now(),
+                        timestamp: serverTimestamp()
+                    });
+
+                    // 2. Client-side deletion of all documents
+                    const q = query(collection(db, DRAWINGS_COLLECTION_PATH));
+                    const querySnapshot = await getDocs(q);
+
+                    querySnapshot.forEach(async (d) => {
+                        // Attempt to delete. Since rules are public, this should work.
+                        await deleteDoc(d.ref).catch(err => {
+                            console.warn("Could not delete stroke document:", err.message);
+                        });
+                    });
+
+                } catch (error) {
+                    console.error("Error clearing board:", error);
+                }
+            };
+
+            // Handles the two-click confirmation logic
+            const handleClearBoardConfirmation = () => {
+                if (clearTimer) {
+                    // Second click: Execute clear
+                    clearTimeout(clearTimer);
+                    clearTimer = null;
+                    resetClearButton();
+                    executeClearBoard();
+
+                } else {
+                    // First click: Ask for confirmation
+                    clearButton.innerHTML = 'Confirm?';
+                    clearButton.classList.remove('text-gray-400', 'hover:text-red-500', 'hover:bg-red-50', 'w-10');
+                    clearButton.classList.add('bg-red-500', 'text-white', 'hover:bg-red-600', 'shadow-md', 'w-20');
+
+                    clearTimer = setTimeout(() => {
+                        // Timeout: Revert state if not clicked again
+                        resetClearButton();
+                        clearTimer = null;
+                    }, 3000); // 3 seconds to confirm
+                }
+            };
+
+            // --- Firestore Listeners ---
+
+            // 1. Listen for the Control Document (Clear Signal)
+            onSnapshot(doc(db, CONTROL_DOC_PATH), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    strokesData.lastClearedAt = data.lastClearedAt;
+                    redrawAllStrokes();
+                } else {
+                    strokesData.lastClearedAt = 0; // No clear marker yet
+                }
+            });
+
+            // 2. Listen for the Drawings Collection
+            onSnapshot(collection(db, DRAWINGS_COLLECTION_PATH), (snapshot) => {
+                let hasChanges = false;
+
+                snapshot.docChanges().forEach(change => {
+                    const docId = change.doc.id;
+                    const data = change.doc.data();
+
+                    // Normalize timestamp for consistent sorting/filtering
+                    const timestamp = data.timestamp ? data.timestamp.toMillis() : Date.now();
+
+                    if (change.type === "added" || change.type === "modified") {
+                        strokesData[docId] = { ...data, timestamp: timestamp };
+                        hasChanges = true;
+                    } else if (change.type === "removed") {
+                        delete strokesData[docId];
+                        hasChanges = true;
+                    }
+                });
+
+                if (hasChanges) {
+                    redrawAllStrokes();
+                }
+            });
+
+            // --- UI/Event Listeners ---
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            document.addEventListener('mouseup', stopDrawing);
+
+            canvas.addEventListener('touchstart', startDrawing, { passive: false });
+            canvas.addEventListener('touchmove', draw, { passive: false });
+            document.addEventListener('touchend', stopDrawing);
+
+            colorPicker.addEventListener('change', (e) => {
+                currentColor = e.target.value;
+                isErasing = false; // Turn off eraser when color is picked
+                eraseButton.classList.remove('bg-indigo-700', 'text-white');
+                eraseButton.classList.add('bg-gray-200', 'text-gray-800');
+            });
+
+            sizeSlider.addEventListener('input', (e) => {
+                currentSize = parseInt(e.target.value, 10);
+            });
+
+            eraseButton.addEventListener('click', () => {
+                isErasing = !isErasing;
+                if (isErasing) {
+                    eraseButton.classList.add('bg-indigo-700', 'text-white');
+                    eraseButton.classList.remove('bg-gray-200', 'text-gray-800');
+                } else {
+                    eraseButton.classList.remove('bg-indigo-700', 'text-white');
+                    eraseButton.classList.add('bg-gray-200', 'text-gray-800');
+                }
+            });
+
+            clearButton.addEventListener('click', handleClearBoardConfirmation);
+
+            // Initialize button state
+            resetClearButton();
+        };
+
+        // Start the application setup
+        setupFirebase();
+
+    </script>
     <style>
+        /* Custom CSS for a better canvas experience */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a202c;
-            color: #e2e8f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 1rem;
+            margin: 0;
+            overflow: hidden; /* Prevent body scroll */
         }
-
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
-            height: 85vh;
-            display: flex;
-            flex-direction: column;
-            background-color: #2d3748;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        #boardContainer {
+            touch-action: none; /* Crucial: Prevents default browser actions like scrolling/zoom */
+            height: calc(100vh - 5rem); /* Height calculation */
         }
-
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        /* Hide scrollbar for a cleaner look */
-        .chat-messages::-webkit-scrollbar {
-            display: none;
-        }
-
-        .chat-messages {
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
-        }
-
-        .message {
-            max-width: 85%;
-            padding: 0.75rem 1rem;
-            border-radius: 1.25rem;
-            line-height: 1.5;
-            word-wrap: break-word;
-        }
-
-        .message-user {
-            align-self: flex-end;
-            background-color: #3182ce;
-            border-bottom-right-radius: 0.25rem;
-        }
-
-        .message-bot {
-            align-self: flex-start;
-            background-color: #4a5568;
-            border-bottom-left-radius: 0.25rem;
-        }
-
-        .chat-input {
-            padding: 1rem;
-            border-top: 1px solid #4a5568;
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .chat-input input {
-            flex-grow: 1;
-            background-color: #4a5568;
-            border: 1px solid #4a5568;
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            outline: none;
-            color: #e2e8f0;
-            transition: border-color 0.2s;
-        }
-
-        .chat-input input:focus {
-            border-color: #3182ce;
-        }
-
-        .chat-input button {
-            background-color: #3182ce;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .chat-input button:hover {
-            background-color: #2c5282;
-        }
-
-        .user-id-display {
-            padding: 0.5rem 1rem;
-            background-color: #2d3748;
-            color: #a0aec0;
-            font-size: 0.75rem;
-            text-align: center;
-            border-top-left-radius: 1rem;
-            border-top-right-radius: 1rem;
-            border-bottom: 1px solid #4a5568;
-        }
-        .local-warning {
-            color: #f6ad55;
-            font-size: 0.75rem;
+        #whiteboardCanvas {
+            background-color: #ffffff;
+            cursor: crosshair;
+            display: block;
+            border: 1px solid #e5e7eb; /* Light border */
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 flex flex-col h-screen">
 
-<div class="chat-container">
-    <div class="user-id-display">
-        <p>User ID: <span id="userIdDisplay">Local-User</span></p>
-        <p id="envWarning" class="local-warning">Running in Local Mode (History is not saved).</p>
+    <!-- Loading Status -->
+    <div id="loading-status" class="flex flex-col items-center justify-center h-full text-xl text-indigo-600">
+        <div id="loading-spinner">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+        <div id="loading-message">Connecting to collaborative board...</div>
     </div>
-    <div id="chatMessages" class="chat-messages">
-        <!-- Messages will be injected here by JavaScript -->
+
+    <!-- Main Whiteboard Interface (Initially Hidden) -->
+    <div id="boardContainer" class="flex-grow w-full max-w-6xl mx-auto p-4 flex flex-col hidden">
+        <div class="flex-grow rounded-xl shadow-lg bg-white overflow-hidden">
+            <canvas id="whiteboardCanvas" class="w-full h-full"></canvas>
+        </div>
     </div>
-    <form id="chatForm" class="chat-input" onsubmit="handleSendMessage(event)">
-        <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">
-        <button type="submit" id="sendButton">Send</button>
-    </form>
-</div>
 
-<!-- All logic is now purely self-contained JavaScript -->
-<script type="module">
-    // --- MODULE IMPORT ---
-    // Import the training rules from the separate file: rules.js
-    import { RESPONSE_RULES } from './rules.js';
-
-    // --- Global State ---
-    
-    // In-memory chat history (will be reset on page refresh)
-    let localMessages = [
-        { text: 'Welcome! My "training data" is now loaded from the separate **rules.js** file. Try asking about my **favorite color** or the **capital of France**.', isBot: true }
-    ];
-    
-    // Create a simple, local user ID
-    const userId = 'Local-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    document.getElementById('userIdDisplay').textContent = userId;
-
-    // --- Core UI Functions ---
-
-    /**
-     * Renders a single message element to the chat container.
-     */
-    const displayMessage = (text, isBot) => {
-        const messagesContainer = document.getElementById('chatMessages');
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message', isBot ? 'message-bot' : 'message-user');
-        messageDiv.textContent = text;
-        messagesContainer.appendChild(messageDiv);
-        // Auto-scroll to the bottom
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    };
-    
-    /**
-     * Clears the UI and redraws all messages from the localMessages array.
-     */
-    const updateLocalChatUI = () => {
-         const messagesContainer = document.getElementById('chatMessages');
-         messagesContainer.innerHTML = '';
-         localMessages.forEach(msg => displayMessage(msg.text, msg.isBot));
-         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    };
-    
-    // Initial load of local message history
-    updateLocalChatUI();
-
-
-    // --- CHATBOT CORE LOGIC (Interpreter) ---
-    
-    /**
-     * Finds a matching response based on the defined training data (RESPONSE_RULES).
-     * This function is the bot's "interpreter" and processing logic.
-     */
-    const generateSimpleResponse = (userText) => {
-        const lowerText = userText.toLowerCase();
-        // Access the imported rules directly
-        const rules = RESPONSE_RULES;
-
-        for (const rule of rules) {
-            const isMatch = rule.patterns.some(pattern => lowerText.includes(pattern));
-
-            if (isMatch) {
-                const randomIndex = Math.floor(Math.random() * rule.responses.length);
-                return rule.responses[randomIndex];
-            }
-        }
-        
-        // Fallback Rule (The "needs more training" response)
-        return "I apologize, but I don't have a rule for that specific topic yet. My 'training' needs to be updated with that knowledge in **rules.js**!";
-    };
-
-    // --- Main Send Message Handler ---
-
-    /**
-     * Function to send a message (Local Mode Only).
-     */
-    window.handleSendMessage = async (event) => {
-        event.preventDefault();
-        const inputField = document.getElementById('chatInput');
-        const userMessage = inputField.value.trim();
-
-        if (!userMessage) return;
-
-        inputField.value = '';
-        const botResponseText = generateSimpleResponse(userMessage);
-
-        const saveMessageAndRespond = (isBot, text) => {
-            // Save to local array and redraw UI
-            localMessages.push({ text: text, isBot: isBot });
-            updateLocalChatUI();
-        };
-
-        try {
-            // 1. Save and display user's message
-            saveMessageAndRespond(false, userMessage);
+    <!-- Controls Panel -->
+    <div class="w-full bg-white shadow-lg border-t border-gray-100 p-3 sm:p-4 fixed bottom-0 h-20">
+        <div class="max-w-6xl mx-auto flex items-center justify-center space-x-4">
             
-            // 2. Simulate a response delay (0.5 seconds)
-            setTimeout(() => {
-                // 3. Save and display bot's response
-                saveMessageAndRespond(true, botResponseText);
-            }, 500); 
+            <!-- Tool Controls (Color/Size) -->
+            <div class="flex items-center space-x-3">
+                <!-- Color Picker -->
+                <label for="colorPicker" class="font-medium text-gray-700 text-sm hidden sm:inline">Color:</label>
+                <input type="color" id="colorPicker" value="#000000" class="w-10 h-10 border-2 border-gray-300 rounded-full cursor-pointer hover:border-indigo-500 transition duration-150">
+                
+                <!-- Size Slider -->
+                <div class="flex items-center space-x-2">
+                    <label for="sizeSlider" class="font-medium text-gray-700 text-sm whitespace-nowrap">Size:</label>
+                    <input type="range" id="sizeSlider" min="1" max="50" value="5" class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                </div>
+            </div>
 
-        } catch (e) {
-            console.error("Error during message process: ", e);
-        }
-    };
-</script>
-
+            <!-- Actions -->
+            <div class="flex items-center space-x-3">
+                
+                <!-- Eraser Button -->
+                <button id="eraseButton" 
+                        class="px-4 py-2 rounded-full font-semibold text-sm transition duration-150 ease-in-out shadow-sm 
+                        bg-gray-200 text-gray-800 hover:bg-gray-300 active:ring-4 active:ring-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 13 17 3l4 4-10 10-4 1-1-4z"></path></svg>
+                    Eraser
+                </button>
+                
+                <!-- Clear Button -->
+                <button id="clearButton" 
+                        class="p-2 rounded-full transition duration-150 ease-in-out font-semibold text-sm w-10 h-10 flex items-center justify-center">
+                    <!-- Initial SVG will be set by JS -->
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
-
